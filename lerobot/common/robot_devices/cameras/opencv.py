@@ -332,6 +332,12 @@ class OpenCVCamera:
         # needs to be re-created.
         self.camera = cv2.VideoCapture(camera_idx, backend)
 
+        # -------- LOW-LATENCY TWEAKS (added by SvaenGheld) --------
+        self.camera.set(cv2.CAP_PROP_BUFFERSIZE, 1)   # keep only 1 frame queued
+        # (Optional but often helpful on Windows) force DirectShow if not already chosen
+        # backend = cv2.CAP_DSHOW
+        # -----------------------------------------------
+
         if self.fps is not None:
             self.camera.set(cv2.CAP_PROP_FPS, self.fps)
         if self.capture_width is not None:
@@ -445,9 +451,17 @@ class OpenCVCamera:
         num_tries = 0
         while True:
             if self.color_image is not None:
+                # flush old frames, keep the newest
+                for _ in range(5):
+                    self.camera.grab()
+                ret, latest = self.camera.retrieve()
+                if ret:
+                    self.color_image = latest
                 return self.color_image
 
-            time.sleep(1 / self.fps)
+            # avoid 1/0 if fps is None
+            if self.fps:
+                time.sleep(1 / self.fps)
             num_tries += 1
             if num_tries > self.fps * 2:
                 raise TimeoutError("Timed out waiting for async_read() to start.")
