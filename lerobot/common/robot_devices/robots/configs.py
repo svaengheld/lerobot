@@ -437,8 +437,11 @@ class So101RobotConfig(ManipulatorRobotConfig):
     calibration_dir: str = ".cache/calibration/so101"
     # `max_relative_target` limits the magnitude of the relative positional target vector for safety purposes.
     # Set this to a positive scalar to have the same value for all motors, or a list that is the same length as
-    # the number of motors in your follower arms.
-    max_relative_target: int | None = None
+    # the number of motors in your follower 
+    ### svaengheld : setting to 15 to fix follower arm staggering - still safe.
+    # max_relative_target: int | None = None
+    max_relative_target: int | None = 15
+    ### end of svaengheld edit
 
     leader_arms: dict[str, MotorsBusConfig] = field(
         default_factory=lambda: {
@@ -478,7 +481,7 @@ class So101RobotConfig(ManipulatorRobotConfig):
         default_factory=lambda: {
             "laptop": OpenCVCameraConfig(
                 camera_index=0,
-                fps=15,
+                fps=30,
                 width=640,
                 height=480,
             ),
