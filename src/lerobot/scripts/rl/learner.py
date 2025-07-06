@@ -503,6 +503,8 @@ def add_actor_information_and_train(
         training_infos = {
             "loss_critic": loss_critic.item(),
             "critic_grad_norm": critic_grad_norm,
+            "value_loss": loss_critic.item(),
+            "reward_mean": rewards.mean().item(),
         }
 
         # Discrete critic optimization (if available)
@@ -519,6 +521,7 @@ def add_actor_information_and_train(
             # Add discrete critic info to training info
             training_infos["loss_discrete_critic"] = loss_discrete_critic.item()
             training_infos["discrete_critic_grad_norm"] = discrete_critic_grad_norm
+            training_infos["value_loss"] = loss_discrete_critic.item()
 
         # Actor and temperature optimization (at specified frequency)
         if optimization_step % policy_update_freq == 0:
@@ -536,6 +539,12 @@ def add_actor_information_and_train(
                 # Add actor info to training info
                 training_infos["loss_actor"] = loss_actor.item()
                 training_infos["actor_grad_norm"] = actor_grad_norm
+                training_infos["policy_loss"] = loss_actor.item()
+                # Compute policy entropy
+                with torch.no_grad():
+                    _, log_probs, _ = policy.actor(observations, observation_features)
+                    training_infos["entropy"] = (-log_probs.mean()).item()
+                training_infos["loss"] = loss_actor.item() + loss_critic.item()
 
                 # Temperature optimization
                 temperature_output = policy.forward(forward_batch, model="temperature")

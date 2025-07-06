@@ -342,6 +342,7 @@ def act_with_policy(
                         "Interaction step": interaction_step,
                         "Episode intervention": int(episode_intervention),
                         "Intervention rate": intervention_rate,
+                        "Episode length": episode_total_steps,
                         **stats,
                     }
                 )
